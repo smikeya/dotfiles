@@ -1,0 +1,420 @@
+# Vi mode
+bindkey -v
+export KEYTIMEOUT=1
+
+# Load ,profile file wich is common for bash and zsh
+if [ -f ~/.profile ]; then
+# zsh does not run .profile by default, we call it here
+# so as to keep .profile independent.
+    emulate sh
+    . $HOME/.profile
+    emulate zsh
+#    source ~/.profile
+fi
+if [ -f ~/.zprofile ]; then
+    source ~/.zprofile
+fi
+
+# load user custom functions
+if [[ -f ~/.zshfunc.custom ]]; then
+  source ~/.zshfunc.custom
+fi
+# load some func one liners ...
+export ZSHCONFIG="${HOME}/.dotfiles"
+ZSH_INIT=${ZSHCONFIG}/_init.sh
+ZSH_COLORIZE_STYLE="native"
+
+if [[ -s ${ZSH_INIT} ]]; then
+    source ${ZSH_INIT}
+else
+    echo "Could not find the init script ${ZSH_INIT}"
+fi
+
+### ----------------------------------------------------
+## use lf/ranger as cd utility with Ctrl+o/Ctrl+p bindings  {{{1
+
+lfcd () {
+    tmp="$(mktemp)"
+    fid="$(mktemp)"
+    lf -command '$printf $id > '"$fid"'' -last-dir-path="$tmp" "$@"
+    id="$(cat "$fid")"
+    archivemount_dir="/tmp/__lf_archivemount_$id"
+    if [ -f "$archivemount_dir" ]; then
+        cat "$archivemount_dir" | \
+            while read -r line; do
+                sudo umount "$line"
+                rmdir "$line"
+            done
+        rm -f "$archivemount_dir"
+    fi
+    if [ -f "$tmp" ]; then
+        dir="$(cat "$tmp")"
+        rm -f "$tmp"
+        if [ -d "$dir" ]; then
+            if [ "$dir" != "$(pwd)" ]; then
+                cd "$dir"
+            fi
+        fi
+    fi
+}
+#bindkey -s '^o' 'lfcd\n'
+
+ranger_cd() {
+    temp_file="$(mktemp -t "ranger_cd.XXXXXXXXXX")"
+    ranger --choosedir="$temp_file" -- "${@:-$PWD}"
+    if chosen_dir="$(cat -- "$temp_file")" && [ -n "$chosen_dir" ] && [ "$chosen_dir" != "$PWD" ]; then
+        cd -- "$chosen_dir"
+    fi
+    rm -f -- "$temp_file"
+}
+# This will run the function by Ctrl+p through returning
+# the string "ranger-cd" in addition to a new-line character
+# to act as Enter key-press
+#bindkey -s "^P" "ranger_cd\n"
+
+#vicd() {
+vv() {
+    local dst="$(command vifmrun --choose-dir - "$@")"
+    if [ -z "$dst" ]; then
+        echo 'Directory picking cancelled/failed'
+        return 1
+    fi
+   { # try
+     (cd "$dst") &&
+     } || { # catch
+        echo " Catched error vifm-cd!!!"
+   }
+}
+
+###   2}}}
+## 1}}}
+
+## some aliases   {{{1
+
+alias lff="$HOME/.dotfiles/config-sm/lf/lfrun"
+
+alias b='buku --suggest'
+
+# Alias for altering some symbol with newline
+# Example: echo $PATH TRN :
+__rt__() { tr -- "$2" "$1" ; }
+alias -g TRN='| __rt__ "\n" '
+
+# Luke Smith's config of nvim for vim. Use to compile and work with text, .tex, .md, .rmd ... files
+if [ -e $HOME/.vil/init.vim ]; then
+  alias vil="nvim -u $HOME/.vil/init.vim $1"
+fi
+if [ -e $HOME/.vimm/vimrc ]; then
+  alias nvi="nvim -u $HOME/.vimm/init.vim $1"
+fi
+if [ -e $HOME/.go.vimrc ]; then
+  alias vimgo="vim -u $HOME/.go.vimrc $1"
+fi
+if [ -e  $HOME/.dotfiles/vim/vim-vanilla/vimrc-symlink ]; then
+  alias vi="nvim -u $HOME/.dotfiles/vim/vim-vanilla/vimrc-symlink $1"
+fi
+alias vin="nvim -N -u NONE -U NONE $1"
+
+alias emoj="emoji-fzf preview | fzf --preview 'emoji-fzf get --name {1}' | cut -d \" \" -f 1 | emoji-fzf get"
+
+if _has vifm; then
+  alias v.='COLORTERM=tmux-256color vifm -c "vsplit" . ' # vi file manager
+fi
+
+bindkey -s '^f' 'cd "$(dirname "$(sk)")"\n'
+
+# cli translate  - https://github.com/soimort/translate-shell
+alias trans-enru='trans -shell en:ru '
+alias trans-enen='gawk -f <(curl -Ls git.io/translate) -- -shell '
+
+# Naive linter for English prose need npm >= 5.2.0 ( https://github.com/btford/write-good )
+if _has npx; then
+  alias writegood="npx write-good $1"
+fi
+
+alias bigf='find ~ -xdev -type f -size +500M'  # display "big" files > 500M
+
+# 3 days weather
+alias sm.weather='curl wttr.in/chisinau'
+
+# rootkit scanner
+alias sm.antivir='sudo rkhunter -c'
+
+alias s3='$HOME/space/sublime_text_3/sublime_text -a '
+alias s4='$HOME/space/sublime_text/sublime_text -a '
+
+# utils
+# https://github.com/athityakumar/colorls
+if _has exa; then
+  alias lx='exa --icons --color=always --group-directories-first -I .git --git-ignore'
+  alias lld='exa -lh --icons --color=always --group-directories-first -I .git --git-ignore'
+  alias lll='exa -lah --icons --color=always --group-directories-first -I .git --git-ignore'
+  alias ll='exa -lhF --git-ignore --icons --group-directories-first --time-style=long-iso -I .git --git-ignore'
+  alias lt='exa -aT -L=1 --icons --color=always --group-directories-first -I .git --git-ignore' # tree listing
+  alias la='ll -a'
+  alias exa2='exa -alhF --git-ignore --icons --group-directories-first --time-style=long-iso -T -L=2 --ignore-glob=".git|node_modules"'
+  alias exa5='exa -alhF --git-ignore --icons --group-directories-first --time-style=long-iso -T -L=5 --ignore-glob=".git|node_modules"'
+fi
+if _has lsd; then
+  alias lct2='lsd -t --tree=2 --group-dirs=first'
+  alias lct5='lsd -t --tree=5 --group-dirs=first'
+  alias lc='lsd -lhA --group-dirs=first'
+  if ! _has l; then
+    alias l=lsd
+  fi
+fi
+alias lcgt2='colorls --gs -t --tree=2 --sd'
+alias  k='k -h'
+# Pipe Aliases
+alias -g V='| vim -'
+alias -g NE='2> /dev/null'
+alias -g NUL='&> /dev/null'
+alias -g W=' | writecmd '
+alias -g S=' | sort '
+alias -g P=' | peco '
+
+# kill process fuzzy search with ~/.dotfiles/tools/sk (skim)
+alias ps.kil='ps aux | sk | awk "{ print \$2 }" | xargs kill -9'
+# list processes
+alias ps.list="ps auxwww|more"
+
+alias rofim='rofi -show window -sidebar-mode \
+  -modi drun,window,'calc:rcalc',keys \
+  -hide-scrollbar true \
+  -bw 2 \
+  -lines 12 \
+  -padding 24 \
+  -width 60 \
+  -location 0 \
+  -columns 2 \
+  -font "Noto Sans 9" \
+  -color-enabled true
+'
+
+alias l.="ls -A | egrep '^\.' "
+alias l..='cd .. && l'
+alias ez="$EDITOR $HOME/.zshrc"
+alias ezf="$EDITOR $HOME/.zshfunc.custom"
+alias ezc="$EDITOR $HOME/.zshrc.custom"
+alias ezp='vim /home/sm/.profile'
+
+# bulk association
+alias -s {tex,md,rmd,txt,custom}=vil
+alias -s {mp3,m4a,flac}="mpv"
+alias -s {png,jpg,tiff,bmp,jpeg}="sxiv"
+
+if [ -f /usr/bin/pacman ]; then
+  alias pkg.list="pacman -Qneq > ~/Code/$(date +"%Y-%m-%d-@%H-%M")-pkglist.txt"
+  alias aur.list="pacman -Qmeq > ~/Code/$(date +"%Y-%m-%d-@%H-%M")-aurlist.txt"
+fi
+
+##   1}}}
+
+# buku bookmarks with fzf
+if _has opera ; then
+#  BROWSER=opera
+  BROWSER=$HOME/space/appimages/LibreWolf-x86_64.AppImage
+  alias bb='$BROWSER $(buku -p -f 10 | sk)'
+else
+  alias bb='$BROWSER $(buku -p -f 10 | sk)'
+fi
+
+# sxhkd help page show
+alias bspk="~/.config/sxhkd/show_help.sh"
+
+# Calendar vim notes show for today yestoday and all peco select
+alias ntod='vi ~/Sync/smNotes/$(date "+%Y-%m-%d").md'
+alias nytod='vi ~/Sync/smNotes/$(ls ~/Sync/smNotes | sort | tail -n 1)'
+alias npec='glow ~/Sync/smNotes/$(ls ~/Sync/smNotes | sort | peco)'
+
+# youtube-dl
+alias yta-aac="youtube-dl --extract-audio --audio-format aac "
+alias yta-best="youtube-dl --extract-audio --audio-format best "
+alias yta-flac="youtube-dl --extract-audio --audio-format flac "
+alias yta-m4a="youtube-dl --extract-audio --audio-format m4a "
+alias yta-mp3="youtube-dl --extract-audio --audio-format mp3 "
+alias yta-opus="youtube-dl --extract-audio --audio-format opus "
+alias yta-vorbis="youtube-dl --extract-audio --audio-format vorbis "
+alias yta-wav="youtube-dl --extract-audio --audio-format wav "
+alias ytv-best="youtube-dl -f bestvideo+bestaudio "
+
+#### ===================================================================
+##
+##           Mapping (Bind) keys
+#### ===================================================================
+bindkey -s '^o' 'lfcd\n'           # cd lf
+bindkey -s "^Xo" "ranger_cd\n"      # cd ranger
+bindkey -s "^Xv" "vv\n"      # cd ranger
+
+# Edit the current command line in $EDITOR
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '\C-x\C-e' edit-command-line
+
+# bind "Cttrl-u"to open rofi in win select mode
+bindkey -s '^u' 'rofi.m\n'
+
+## desk: Peco Functions (Ctrl+xf, Ctrl+xr, Ctrl+xg,Ctrl+x+Ctrl+k,Ctrl+x+Ctrl+b,Ctrl+x+Ctrl+g)  {{{
+function peco-files() {
+  local current_lbuffer="$LBUFFER"
+  local current_rbuffer="$RBUFFER"
+  if command -v fd >/dev/null 2>&1; then
+    local file="$(command fd --type file --hidden --no-ignore --exclude .git/ --color never 2>/dev/null | peco)"
+  elif command -v rg >/dev/null 2>&1; then
+    local file="$(rg --glob "" --files --hidden --no-ignore-vcs --iglob !.git/ --color never 2>/dev/null | peco)"
+  elif command -v ag >/dev/null 2>&1; then
+    local file="$(ag --files-with-matches --unrestricted --skip-vcs-ignores --ignore .git/ --nocolor -g "" 2>/dev/null | peco)"
+  else
+    local file="$(
+    command find \( -path '*/\.*' -o -fstype dev -o -fstype proc \) -type f -print 2> /dev/null \
+      | sed 1d \
+      | cut -b3- \
+      | awk '{a[length($0)" "NR]=$0}END{PROCINFO["sorted_in"]="@ind_num_asc"; for(i in a) print a[i]}' - \
+      | peco
+    )"
+  fi
+
+  if [ -n "$file" ]; then
+    file=$(echo "$file" | tr --delete '\n')
+    file=$(printf %q "$file")
+    BUFFER="${current_lbuffer}${file}${current_rbuffer}"
+    CURSOR=$#BUFFER
+  fi
+}
+zle -N peco-files
+bindkey '^Xf' peco-files
+
+# anyframeのセットアップ
+#zinit light mollifier/anyframe
+# Ctrl+x+g
+# peco でディレクトリの移動履歴を表示
+bindkey '^xg' anyframe-widget-cdr
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
+
+# Ctrl+x -> r ; Ctrl+x -> Ctrl+r
+# peco でコマンドの実行履歴を表示
+bindkey '^x^y' anyframe-widget-execute-history
+bindkey '^xr' anyframe-widget-put-history
+
+
+# Ctrl+x -> Ctrl+b
+# peco でGitブランチを表示して切替え
+bindkey '^x^b' anyframe-widget-checkout-git-branch
+
+# Ctrl+x -> Ctrl+k
+# peco kill process
+bindkey '^x^k' anyframe-widget-kill
+
+# Ctrl+x -> Ctrl+g
+# peco launch select-widget
+bindkey '^x^g' anyframe-widget-select-widget
+
+### }}}
+
+## desc: [Ctrl+s]-insert sudo before command in cli {{{
+sudo-command-line() {
+    [[ -z $BUFFER ]] && zle up-history
+    if [[ $BUFFER == sudo\ * ]]; then
+        LBUFFER="${LBUFFER#sudo }"
+    elif [[ $BUFFER == $EDITOR\ * ]]; then
+        LBUFFER="${LBUFFER#$EDITOR }"
+        LBUFFER="sudo $EDITOR $LBUFFER"
+    elif [[ $BUFFER == sudoedit\ * ]]; then
+        LBUFFER="${LBUFFER#sudoedit }"
+        LBUFFER="$EDITOR $LBUFFER"
+    else
+        LBUFFER="sudo $LBUFFER"
+    fi
+}
+zle -N sudo-command-line
+# Defined shortcut keys: [Ctrl+s]
+bindkey '^s' sudo-command-line
+bindkey -M vicmd 's' sudo-command-line
+## }}}
+
+#####################
+# FZF SETTINGS      #
+##################### {{{
+export FZF_DEFAULT_OPTS="
+--header=$'Ps [?,C-s]:toggle-[preview,sort]\tC-[e,n]:Open[vim,nvim]\n\n' \
+--ansi
+--layout=default
+--info=inline
+--height=50%
+--multi
+--preview-window=right:50%:hidden
+--preview-window=sharp
+--preview-window=cycle
+--preview '([[ -f {} ]] && (bat --style=numbers --color=always --theme=gruvbox-dark --line-range :500 {} || cat {})) || ([[ -d {} ]] && (tree -C {} | less)) || echo {} 2> /dev/null | head -200'
+--prompt='λ -> '
+--pointer='|▶'
+--marker='✓'
+--bind alt-p:preview-up,alt-n:preview-down
+--bind '?:toggle-preview'
+--bind 'ctrl-e:execute(vim {} < /dev/tty > /dev/tty 2>&1)' > selected
+--bind 'ctrl-n:execute(nvim {} < /dev/tty > /dev/tty 2>&1)' > selected
+"
+export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+## }}}
+
+###Random colorscript
+if [ -f /opt/shell-color-scripts/colorscript.sh ]; then
+#    sleep 0.2
+#    /opt/shell-color-scripts/colorscript.sh random
+    alias d='/opt/shell-color-scripts/colorscript.sh random'
+    alias d1='/opt/shell-color-scripts/colorscript.sh -e 00default.sh'
+fi
+
+alias l="lsd --group-dirs first"
+alias ytdll="bash $HOME/scripts/ytdll"
+alias s="syscheck"
+alias cd.sk=cd_with_sk
+alias fzf.cal="fd . ~/Sync/diary/ --extension md | fzf "    #fzf --no-multi --preview 'bat --color=always -l yaml --line-range :200 {}' "
+alias vim.cal='vi +CalendarH'
+alias i="fzfimg.sh"
+
+
+# ALT-I - Paste the selected entry from locate output into the command line
+fzf-locate-widget() {
+  local selected
+  if selected=$(locate / | fzf -q "$LBUFFER"); then
+    LBUFFER=$selected
+  fi
+  zle redisplay
+}
+zle     -N    fzf-locate-widget
+bindkey '\ei' fzf-locate-widget
+
+# navi cli cheat completion utility Ctrl+G
+if [ -d $HOME/.config/navi/ ]; then
+  eval "$(navi widget zsh)"
+fi
+
+alias bandwhich='sudo /home/sm/.zinit/plugins/bandwhich/bandwhich'
+alias vim.ls="bash vimv"
+alias n="nvim ."
+
+#export SKIM_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export SKIM_DEFAULT_COMMAND="fd --type f --color=always || git ls-tree -r --name-only HEAD || rg --files || find ."
+export SKIM_DEFAULT_OPTIONS="
+    --ansi 
+    --height=25 
+    --layout=reverse 
+    --margin=TRBL 
+    --prompt='SKIM > ' 
+    --header="Indexing::$PWD\t?:toggle-preview\tCTRL-e:vim\tCTRL-n:nvim\n\n" 
+    --multi 
+    --preview-window=':hidden' 
+    --preview='bat --style=numbers --color=always {}' 
+    --bind='alt-a:toggle-all'
+    --bind '?:toggle-preview'
+    --bind 'ctrl-e:execute(vim {} < /dev/tty > /dev/tty 2>&1)' > selected
+    --bind 'ctrl-n:execute(nvim {} < /dev/tty > /dev/tty 2>&1)' > selected
+"
+
+alias vv.='vv .'
+alias vv..='vv . .'
+
+# vim: ft=zsh

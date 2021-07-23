@@ -1,0 +1,73 @@
+
+export QT_QPA_PLATFORMTHEME="qt5ct"
+export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+export QT_SCALE_FACTOR=1
+
+# Set vim mode to the shell default is emacs
+set -o vi
+
+# Set vim as default editor  - as viriable
+export VISUAL= "vim"
+export EDITOR="$VISUAL"
+export BROWSER="palemoon"
+export READER="zathura"
+export TERMINAL="st"
+
+# neovim
+export PYTHON3_HOST_PROG=/usr/bin/python3
+export PYTHON_HOST_PROG=/usr/bin/python2
+
+# se tpreview colorscheme for pristol previewer
+export PISTOL_CHROMA_FORMATTER=terminal256
+export PISTOL_CHROMA_STYLE=dracula
+
+# sm add rust path -> moved to .profile
+[ -d $HOME/.cargo ] && 
+# sm add GO path -> moved to .profile
+# For example, if you installed Go to your home directory you should add commands like the following to  $HOME/.profile
+export GOROOT="/usr/local/go"
+export PATH="$PATH:$GOROOT/bin"
+[ -d $HOME/go ] && export GOPATH="$HOME/go"
+# [ -d $GOPATH/bin ] && export GOBIN="$GOPATH/bin"
+export PATH="$PATH:$GOPATH/bin"
+export GOBIN="$HOME/Code/go/bin"
+export PATH="$GOBIN:$PATH"
+
+# Make local for single user bin and scripts directories i.e. not global apps
+#[ -d $HOME/bin ] && export PATH="$HOME/bin:$PATH"
+[ -d $HOME/scripts ] && export PATH="$HOME/scripts:$PATH"
+[ -d $HOME/.dotfiles/tools ] && export PATH="$HOME/.dotfiles/tools/:$PATH"
+
+# Adds `~/.local/bin` to $PATH
+export PATH="$PATH:$(du "$HOME/.local/bin/" | cut -f2 | paste -sd ':')"
+
+# Executes commands at login before zshrc.
+#
+if [[ -z "$LANG" ]]; then
+    export LANG='en_US.UTF-8'
+    export LANGUAGE='en_US.UTF-8'
+fi
+
+# added by sm1 my preffered color scheme
+# source "$HOME/scripts/gruvbox_256palette.sh"
+#source "$HOME/scripts/base16-dracula.sh"
+#source "$HOME/scripts/base16-nord.sh"
+#source "$HOME/scripts/base16-snazzy.sh"
+
+# export homebin dir - done in zshfunc.custom
+# [ -d $HOME/bin ] && export PATH="$HOME/bin:$PATH"
+
+# load alias list
+# [ -f $HOME/.aliases ] && source $HOME/.aliases
+
+# export path to ruby gem directory
+[ -d $HOME/.gem/ruby/2.7.0/bin ] && PATH="$PATH:$HOME/.gem/ruby/2.7.0/bin"
+export PATH
+
+# export path to yarn
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+
+WGETRC=$HOME/.wgetrc
+. "$HOME/.cargo/env"

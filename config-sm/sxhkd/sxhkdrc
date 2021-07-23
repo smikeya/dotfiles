@@ -1,0 +1,534 @@
+#  ____ _____
+# |  _ \_   _|  Derek Taylor (DistroTube)
+# | | | || |  	http://www.youtube.com/c/DistroTube
+# | |_| || |  	http://www.gitlab.com/dwt1/
+# |____/ |_|
+#
+# A customized sxhkdrc for the bspwm window manager.
+# https://github.com/baskerville/sxhkd
+# https://github.com/baskerville/bspwm
+
+# With `alt` focus {next,previous} window in the current desktop.  With
+# `mod3` focus {next,previous} desktop in the current monitor.
+# Cyclical behaviour.  Move in the opposite direction while also holding
+# down `shift`.
+# description: cycle through desktops-windows(super-alt+Tab) 
+{super,alt} + {_,shift +} Tab
+	bspc {desktop,node} -f {next,prev}.local
+
+# description: reload sxhkd config(keybinding):
+super + Escape
+	pkill -USR1 -x sxhkd && notify-send "sxhkd successfully restarted"
+
+# description: quit/restart bspwm
+super + shift + {q,r}
+	bspc {quit,wm -r}
+
+# description: close and kill window
+super + shift + c
+	bspc node -c
+
+# BSPWM HOTKEYS
+
+# description: terminal KITTY
+super + ctrl + Return
+    $HOME/.local/kitty.app/bin/kitty
+
+# description: key bindings rofi search
+super + shift + s
+	$HOME/scripts/sxhkd-bind
+
+# description: key bindings rofi search
+super + s
+	$HOME/scripts/sxhkd_help.sh
+
+# description: Toggle Compositor
+alt + ctrl + o
+    ~/scripts/toggle-compositor
+
+# description: Toggle ScreenKey
+alt + ctrl + k
+    ~/scripts/toggle-screenkey
+
+# description: Toggle polybar (Hide-show)
+super + b
+	{polybar-msg cmd toggle; bspc config top_padding +0 ,\
+     polybar-msg cmd toggle; bspc config top_padding 20 }
+
+# description: send newest marked to newest preselected node
+super + y
+	bspc node newest.marked.local -n newest.!automatic.local
+
+# description: swollow window
+super + shift  + v
+	xdo id | pidswallow -t
+
+# description: dm-confedit: Edit Configs
+super + v
+	exec dm-hub
+
+# STATE/FLAGS ============================ {{{
+
+# description: set layout -- tiled,monocle,even,grid,rgrid,tall,rtall,wide,rwid
+super + n ; super + {t,m,e,g,shift + g,y,shift + y,w,shift + w}
+    bsp-layout set {tiled,monocle,even,grid,rgrid,tall,rtall,wide,rwide}
+
+# description: set layout -- tiled,pseudo-tiled,float,fullscreen
+super + {t,shift + t,f,shift + f}
+	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
+
+# description: set wind mode -- alternate,longgest-side,spiral
+super + ctrl + {a,w,s}
+    bspc config automatic_scheme {alternate,longest_side,spiral}
+
+# description: alternate layout -- tiled/monocle layout
+super + m
+	bspc desktop -l next
+
+# description: Toggle layout -- tiled/float state
+super + d
+    bspc node focused -t \~floating
+
+# Set the node flags.  Locked is a node that cannot be closed with `bspc
+# # node --close`.  Marked is a specific selector that allows operating on
+# # the given item (such as sending the marked item to the newest
+# # preselection).  Sticky stays in the focused desktop.  Private tries to
+# # keep its dimensions and tiling position.
+# description: node flag -- l-locked m-marked s-sticky p-private
+super + a ; {l,m,s,p}
+    bspc node -g {locked,marked,sticky,private}
+
+### }}}
+
+# FOCUS/ROTATE/SWAP ============================= {{{
+#
+
+# description: Flip layout vertically/horizontally
+super + alt + {_,shift + }m
+	bspc node @/ -C {forward,backward}
+
+# description: Mirror leaves horizontal,vertical
+super + {comma,period}
+	bspc node @/ -F {horizontal,vertical}
+
+# description: Rotate leaves of tree 90,270 degrees
+super + shift + {comma,period}
+	bspc node @/ -R {90,270}
+
+# description: swap the current<=>selected node
+super + alt + g
+    bspc node -s $(xorg-choose-window oijklmhnup \
+        -b $(bspc query -N -n focused))
+#	bspc node -s biggest.local
+
+# description: focus the node in the given direction
+super + {_,shift + }{h,j,k,l}
+	bspc node -{f,s} {west,south,north,east}
+#super + shift +  {h,j,k,l}
+#	bspc node -f {left,down,up,right} || bspc node -f {prev, prev, next, next}
+
+# description: focus the next/previous node in the current desktop
+#super + {_,shift + }i
+#	bspc node -f {next,prev}.local
+
+# description: focus the next/previous desktop in the current monitor
+super + bracket{left,right}
+	bspc desktop -f {prev,next}.local
+
+# focus the last node/desktop
+#super + {grave,Tab}
+#	bspc {node,desktop} -f last
+
+# description: focus the Older or Newer node in the focus history
+super + {_,shift +}o
+	bspc wm -h off; \
+	bspc node {older,newer} -f; \
+	bspc wm -h on
+
+# description: focus or send to the given desktop
+super + {_,shift + }{1-9}
+	bspc {desktop -f,node -d} '^{1-9}' --follow
+
+### }}}
+
+# PRESELECT ============================= {{{
+
+# description: preselect the direction
+super + ctrl + {h,j,k,l}
+	bspc node -p {west,south,north,east}
+
+# description: preselect the ratio as %-ge of the window
+super + ctrl + {1-9}
+	bspc node -o 0.{1-9}
+
+# description: cancel the preselection for the focused node
+super + ctrl + space
+	bspc node -p cancel
+
+# description: cancel the preselection for the focused desktop
+super + ctrl + shift + space
+	bspc query -N -d | xargs -I id -n 1 bspc node id -p cancel
+
+### }}}
+
+# MOVE/RESIZE {{{2
+
+# description:  Move to preselection
+super + ctrl + m
+  bspc node -n last.\!automatic.local;
+
+## description: move the floating window
+#ctrl + shift + {h,j,k,l}
+# 	floating_motions {_,edge-}{west,south,north,east}
+
+# description: move a floating window
+super + {Left,Down,Up,Right}
+	bspc node -v {-40 0,0 40,0 -40,40 0}
+
+# description: expand/contract a wind outward/inward
+super + shift + {Left,Down,Up,Right}
+     STEP=20; SELECTION={1,2,3,4}; \
+         bspc node -z $(echo "left -$STEP 0,bottom 0 $STEP,top 0 -$STEP,right $STEP 0" | cut -d',' -f$SELECTION) || \
+             bspc node -z $(echo "right -$STEP 0,top 0 $STEP,bottom 0 -$STEP,left $STEP 0" | cut -d',' -f$SELECTION)
+
+#Resize nodes
+# description: resize nodes super + alt + {h,j,k,l}
+alt + shift + {h,j,k,l}
+	bspc node {@west  -r -50 || bspc node @east  -r -50, \ 
+               @south -r +50 || bspc node @north -r +50, \ 
+               @south -r -50 || bspc node @north -r -50, \ 
+               @west  -r +50 || bspc node @east  -r +50] 
+## 	bspwm_resize {west,south,north,east} 50`
+
+# description: expand a floating window on all sides.
+super + alt + Right
+	bspc node -z left -20 0; \
+	bspc node -z bottom 0 10; \
+	bspc node -z top 0 -10; \
+	bspc node -z right 20 0
+# description: contract a floating window on all sides.
+super + alt + Left
+	bspc node -z left 20 0; \
+	bspc node -z bottom 0 -10; \
+	bspc node -z top 0 10; \
+	bspc node -z right -20 0
+
+# description: expand/contract a window
+alt + control + {h,j,k,l}
+	bspc node -z {left -20 0 || bspc node -z right -20 0, \
+                 bottom 0 20 || bspc node -z top 0 20,\
+                 top 0 -20 || bspc node -z bottom 0 -20,\
+                 right 20 0 || bspc node -z left 20 0}
+# description: expand/contract a wind by moving side outward/inward
+super + c : {h,j,k,l}
+     STEP=20; SELECTION={1,2,3,4}; \
+         bspc node -z $(echo "left -$STEP 0,bottom 0 $STEP,top 0 -$STEP,right $STEP 0" | cut -d',' -f$SELECTION) || \
+             bspc node -z $(echo "right -$STEP 0,top 0 $STEP,bottom 0 -$STEP,left $STEP 0" | cut -d',' -f$SELECTION)
+
+# description: Resize window gap on focused desktop
+super + alt + bracket{left,right}
+	bspc config -d focused window_gap $((`bspc config -d focused window_gap` {-,+} 5 ))
+
+# description: Balance {Tree,Brother,Undo}
+super + alt + b: {t,b,u}
+	bspc node {@/ -B, \
+                @brother -B, \
+                @/ -E}
+
+## description: Balance tree
+#super + alt + b
+#	bspc node @/ -B
+
+# If you do this on biggest window of the desktop, it usually means balancing all windows with except the biggest.
+## description: Balance brother node. 
+#super + shift + b
+#	bspc node @brother -B
+
+## description: Undo balancing (equalize windows)
+#super + ctrl + b
+#	bspc node @/ -E
+
+# 2}}}
+
+# APPLICATION KEYBINDINGS (Super + Alt + Key) {{{2
+
+# browsers {{{3
+# description:browser qutebrowser 
+super + shift + w
+  qutebrowser
+# description: browser palemoon
+super + w
+  palemoon
+# launch lynx web browser
+#super + alt + l
+#    st -e lynx -cfg=~/.lynx/lynx.cfg -lss=~/.lynx/lynx.lss -vikeys gopher://distro.tube
+# 3}}}
+
+# description: show active window
+super + alt + space
+    st -e ~/.local/bin/bspwm-scripts/bspwm_show_active
+
+# description: terminal ST {{{3
+super + Return
+	st
+#	$TERMINAL
+# description: terminal Alacritty
+super + alt + Return
+	alacritty
+# description: terminal TMUX xfce4-terminal
+super + shift + Return
+	xfce4-terminal -e ~/.dotfiles/home.local/bin/tat
+
+# description: launch newsboat feed reeder
+super + alt + n
+    st -e newsboat
+
+# description: audio mixer run
+super + alt + a
+  st -e ~/scripts/pulsemixer
+
+#################################################################
+#     FUNCTION KEYS
+################################################################# {{{3
+## LUNCHERs Alt+{F2,F3,F5,F6}
+
+# description: terminal xfce4-dropdown
+alt + @F12
+	xfce4-terminal --hide-borders --drop-down
+
+# description: terminal xfce
+alt + @F4
+    xfce4-terminal --hide-borders
+# description: terminal KITTY
+ctrl + @F4
+    $HOME/.local/kitty.app/bin/kitty
+
+# description: luncher F2
+alt + @F2
+	xfce4-appfinder
+
+# description: lunch app finder
+super + shift + space
+	xfce4-appfinder
+# description: luncher F3
+alt + @F3
+	jgmenu_run >/dev/null 2>&1
+# description: rofi 
+super + @space
+  rofi -show window -sidebar-mode \
+    -modi window,"calc:qalc +u8 -nocurrencies" \
+    -hide-scrollbar true \
+    -bw 2 \
+    -lines 15 \
+    -padding 24 \
+    -width 60 \
+    -location 0 \
+    -columns 1 \
+    -font "Noto Sans 9" \
+    -color-enabled true
+# 3}}}
+
+# 2}}}
+
+#super + e : {1-4}
+## description: node -r 
+#super + e : { Home,End,Delete,Left }
+#    { \
+#     bspc node @west -r -150 || bspc node @east -r -150, \
+#     bspc node @west -r +150 || bspc node @east -r +150, \
+#     bspc node @north -r -150 || bspc node @south -r -150, \
+#     bspc node @north -r +150 || bspc node @south -r +150 \
+#}
+
+# description: record with dm-record
+alt + super + v
+    dm-record
+
+# GUI -super+g 
+#     notify-send -i vlcplayer "Run GUI program" "Launching VLC Player" && vlc, \
+# description: (0-xed,1-qutebrowser,2-vlc,3-vscode,4-pcmanfm,5-thunderbird)
+super + g ; {0-7}
+   { \
+     notify-send -i xx "NOT USED" "Launchers 1 ... 5\n 1. Xed\n 2. VLC Player\n 3. PcMan FileN\n 4. Thunderburd Email\n" && xx, \
+     notify-send -i xed "Run GUI " "Launching Xed TextEditor" && xed, \
+     notify-send -i myBase "Run GUI program" "Launching myBase" && ~/space/myBase7/myBase.run, \
+     notify-send -i system-file-manager "Run GUI " "Launching File Manager" && pcmanfm, \
+     notify-send -i thunderbird "Run GUI " "Launching Email Client" && thunderbird \
+   }
+
+#  ~/.dmenu/dmenu-sysmon.sh
+# description: 0-dm-sysmon,1-recordMenu,2-htop,3-gotop,4-vil,5-vim,6-newsboat,7-mocp,8-dm-qute,9-dm-search
+super + x ; {0-9}
+    { \
+        (~/.local/bin/with_zsh ~/.dmenu/dmenu-sysmon.sh), \
+        (~/.local/bin/with_zsh ~/.dmenu/dmenu-record.sh), \
+        (st -e htop), \
+        (st -e ~/.dotfiles/tools/gotop), \
+        (~/.local/bin/with_zsh nvim ~/.dotfiles/vim/vil/init.vim), \
+        (st -e vim), \
+        (st -e newsboat), \
+        (st -e mocp), \
+        (~/.local/bin/with_zsh ~/.dmenu/dmenu-qute.sh), \
+        ~/.local/bin/with_zsh ~/.dmenu/dmenu-search.sh \
+    }
+
+# ----------------------------------
+#
+# # Screenshots (requires `scrot`).  First one is for the focused window.
+# # The other is of the entire X session (including all active monitors).
+# # Note that `scrot` also has an interactive mode that I do not use.
+# description: Scrot Window Screenshot
+ctrl + Print
+  scrot -u -z '%Y-%m-%d_%H:%M:%S_$wx$h$n.png' -e 'mv $f ~/Pictures/scrot_screenshots' \
+       && notify-send -i gnome-screenshot "Window view screenshot" "Saved window to Pictures"
+
+# description: Scrot Screen Screenshot
+ctrl + shift + Print
+  scrot -m -z '%Y-%m-%d_%H:%M:%S_$wx$h.png' -e 'mv $f ~/Pictures/scrot_screenshots' \
+       && notify-send -i gnome-screenshot "Screen view screenshot" "Saved screen to Pictures"
+
+# description: Scrot Selection Screenshot
+super + Print
+  ~/.local/bin/with_zsh "scrot -s 'part-%Y-%m-%d-%s_screenshot_\$wx\$h.jpg' -e 'mv \$f ~/Pictures/scrot_screenshots'" \
+       && notify-send -i gnome-screenshot "Selection jpg  screenshot" "Selection save to Pictures"
+
+# description: Scrot Selection Screenshot
+super + ctrl + Print
+  scrot '%Y-%m-%d-%s_screenshot_$wx$h.jpg' -e 'mv $f ~/Pictures/scrot_screenshots' \
+       && notify-send -i gnome-screenshot "Screen jpg screenshot" "Window save to Pictures"
+
+## from https://gitlab.com/protesilaos/dotfiles/blob/master/bspwm/.config/sxhkd/sxhkdrc_bspc
+# Continuous input mode
+# # =====================
+# # EXPLAIN: The following key chords have a colon sign `:' before their
+# # last part.  By pressing the keys to the left of the colon, you can
+# # then pass the commands by only using the keys to the right of the
+# # colon.  This eliminates the need for repeated chord presses that
+# # involve the modifier keys.  Exit the mode with "Escape".
+# #
+# # NOTE: All of the following are mirrors of their afore-mentioned
+# # couterparts.
+#
+# description: Resize node in the given direction.
+super + c : {h,j,k,l}
+	bspc node {@west  -r -50 || bspc node @east  -r -50, \ 
+               @south -r +50 || bspc node @north -r +50, \ 
+               @south -r -50 || bspc node @north -r -50, \ 
+               @west  -r +50 || bspc node @east  -r +50} 
+
+# description: Resize dynamic gaps.
+super + c : bracket{left,right}
+ 	bspc config -d focused window_gap "$(($(bspc config -d focused window_gap) {-,+} 5 ))"
+
+# description: Equalize dynamic gaps.
+super + {_, shift +} equal
+ 	bspc config -d focused window_gap {8, 0}
+
+# description: Move floating windows with the arrow keys
+super + c : {Left,Down,Up,Right}
+	bspc node -v {-20 0,0 20,0 -20,20 0}
+
+
+# DMENU SCRIPTS (Alt+Ctrl+Key) {{{3
+# description: run  rofi program drun
+alt + shift + Return
+	rofi -show drun -width 50
+# description: run dmenu_run program
+alt + ctrl + Return
+	dmenu_run -i -nb '#191919' -nf '#fea63c' -sb '#fea63c' -sf '#191919' -fn 'NotoMonoRegular:bold:pixelsize=14'
+##	dmenu_run
+# description: edit common config files
+alt + ctrl + e
+   ~/.dmenu/dmenu-edit-configs.sh
+# description: surfraw
+alt + ctrl + s
+   ~/.dmenu/dmenu-surfraw.sh
+# description: common system montoring programs
+alt + ctrl + m
+  ~/.dmenu/dmenu-sysmon.sh
+# description: reddio Reddit viewer
+alt + ctrl + r
+   ~/.dmenu/dmenu-record.sh
+# description: run Appimage dmenu
+alt + ctrl + t
+   ~/.dmenu/dmenu-trading.sh
+# description: Screenshot take/upload scripts dmenu
+shift + Print
+   ~/.dmenu/dmenu-scrot.sh
+# 3}}}
+
+## }}}
+
+## description: insert/clear receptacle on current desktop
+#super + {_,shift} + i
+# 	insert={true,false}; \
+# 	insert && bspc node -i || \
+# 	for win in `bspc query -N -n .leaf.!window.local`; do bspc node $win -k ; done;
+
+
+# Advanced operations (receptacles and scripted actions)
+
+# Dynamic desktop behaviour:  this invokes a script of mine that
+# # implements dynamic desktops (see dotfiles).  If the given desktop
+# # number is missing, it is created on the spot.  Empty desktops are then
+# # removed automatically.
+# #
+# # super + <number> = focus the given desktop
+# # super + shift + <number> = send focused window to given desktop
+# # super + ctrl + shift + <number> = as above, but send to next monitor
+# # super + ctrl + <number> = switches the active (visible) desktop of the
+# # unfocused monitor, without focusing it (focus stays on the current
+# # desktop/monitor).  It also inserts a receptacle, meaning that the next
+# # created window will go there without calling focus to itself (see my
+# # bspwm_external_rules).
+# NOTE the leading `;` runs this command asynchronously.
+#super + {_,shift + ,ctrl + shift +,ctrl +}{1-9}
+#    ;bspwm_dynamic_desktops {--df,--ns,--nm,--da} {1-9}
+#
+# description: Bring/send the windows of the given desktop to the current one.
+super + n ; super + {_, shift + }{0-9}
+    ~/.local/bin/bspwm-scripts/bspwm_multifaceted_operation {--bring-desktop-here,--send-desktop-there} {0-9}
+#       
+# # Close {or kill} all windows in the present desktop except the focused
+# # or any marked ones.
+# description: {close, kill} windows in this desktop except the focused/marked
+super + n ; super + c
+    ~/.local/bin/bspwm-scripts/bspwm_multifaceted_operation --{close,kill}-all-local-non-focused
+# description: {close, kill} all windows in this desktop
+super + n ; super + shift + c
+   bspc node 'any.local' --close
+#
+# # Assign the locked flag to all windows in the current desktop.  With
+# # shift, remove the locked flag from all.
+# super + n ; {_, shift + }l
+#     bspwm_multifaceted_operation {--lock-all-local,--unlock-all-local}
+#
+#
+# # Continuous input mode
+# # =====================
+# # EXPLAIN: The following key chords have a colon sign `:' before their
+# # last part.  By pressing the keys to the left of the colon, you can
+# # then pass the commands by only using the keys to the right of the
+# # colon.  This eliminates the need for repeated chord presses that
+# # involve the modifier keys.  Exit the mode with "Escape".
+# #
+# # NOTE: All of the following are mirrors of their afore-mentioned
+# # couterparts.
+#
+# # Resize node in the given direction.
+# super + c : {h,j,k,l}
+#     own_script_bspwm_node_resize {west,south,north,east} 50
+#
+# # Gaps presets.
+# super + c : {y,u,i,o}
+#     bspc config window_gap {0,5,10,20}
+#
+# # Mode for dynamic gaps.
+# super + c : bracket{left,right}
+#     bspc config -d focused window_gap "$(($(bspc config -d focused window_gap) {-,+} 5 ))"
+#
+# # Move floating windows with the arrow keys
+# super + c : {Left,Down,Up,Right}
+#     bspc node -v {-20 0,0 20,0 -20,20 0}
+#
+#----------------------------------------------------------------Media Controls

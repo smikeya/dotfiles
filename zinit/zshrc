@@ -1,0 +1,356 @@
+# Install rust language if not installed
+if [[ !  -d "$HOME/.cargo" ]]; then
+#    echo "rust lang is installed"
+#else
+    echo "WARNING: \"cargo\" command is not found. Install rust first"
+    echo "home: https://www.rust-lang.org/tools/install"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+fi
+# make links and copy configs
+if [[ ! -d "$HOME/.zinit" ]]; then
+    command mkdir -p $HOME/.zinit
+    command sh -c $HOME/.dotfiles/zinit/installLink.sh
+fi
+# https://github.com/NICHOLAS85/dotfiles/blob/xps_13_9365_refresh/.zshrc
+TMPDIR="$HOME/.local/ZINIT_TMPDIR"
+
+# Change shell behavior when opening the terminal view in dolphin. MYPROMPT set by konsole profile
+if ! [[ $MYPROMPT = dolphin ]]; then
+    isdolphin=false
+    # Use chpwd_recent_dirs to start new sessions from last working dir
+    # Populate dirstack with chpwd history
+    autoload -Uz chpwd_recent_dirs add-zsh-hook
+    add-zsh-hook chpwd chpwd_recent_dirs
+    zstyle ':chpwd:*' recent-dirs-file "${TMPDIR:-/tmp}/chpwd-recent-dirs"
+    dirstack=($(awk -F"'" '{print $2}' ${$(zstyle -L ':chpwd:*' recent-dirs-file)[4]} 2>/dev/null))
+    [[ ${PWD} = ${HOME}  || ${PWD} = "." ]] && (){
+        local dir
+        for dir ($dirstack){
+            [[ -d "${dir}" ]] && { cd -q "${dir}"; break }
+        }
+    } 2>/dev/null
+else
+    isdolphin=true
+fi
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+ZINIT_HOME="${ZINIT_HOME:-${ZPLG_HOME:-${ZDOTDIR:-$HOME}/.zinit}}"
+ZINIT_BIN_DIR_NAME="${${ZINIT_BIN_DIR_NAME:-$ZPLG_BIN_DIR_NAME}:-bin}"
+### Added by Zinit's installer
+if [[ ! -f "$ZINIT_HOME/$ZINIT_BIN_DIR_NAME/zinit.zsh" ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
+    command mkdir -p "$ZINIT_HOME" && command chmod g-rwX "$ZINIT_HOME"
+    command git clone https://github.com/zdharma/zinit "$ZINIT_HOME/$ZINIT_BIN_DIR_NAME" && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%f" || \
+        print -P "%F{160}▓▒░ The clone has failed.%f"
+fi
+source "$ZINIT_HOME/$ZINIT_BIN_DIR_NAME/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+### End of Zinit installer's chunk
+
+# A binary Zsh module which transparently and automatically compiles sourced scripts
+module_path+=( "${HOME}/.zinit/bin/zmodules/Src" )
+zmodload zdharma/zplugin &>/dev/null
+
+if [[ ! -d "${ZINIT[PLUGINS_DIR]}/_local---config-files" ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing local config-files…%f"
+#    curl https://codeload.github.com/NICHOLAS85/dotfiles/tar.gz/xps_13_9365_refresh | \
+#    tar -xz --strip=3 dotfiles-xps_13_9365/.zinit/plugins/_local---config-files
+#    mv _local---config-files "${ZINIT[PLUGINS_DIR]}/"
+    cp -r $HOME/.dotfiles/zinit/dot.zinit/plugins/_local---config-files "${ZINIT[PLUGINS_DIR]}/"
+fi
+
+# Functions to make configuration less verbose
+# zt() : First argument is a wait time and suffix, ie "0a". Anything that doesn't match will be passed as if it were an ice mod. Default ices depth'3' and lucid
+# zct(): First argument provides $MYPROMPT value used in load'' and unload'' ices. Sources a config file with tracking for easy unloading using $MYPROMPT value. Small hack to function in for-syntax
+zt()  { zinit depth'3' lucid ${1/#[0-9][a-c]/wait"$1"} "${@:2}"; }
+zct() {
+    thmf="${ZINIT[PLUGINS_DIR]}/_local---config-files/themes"
+    if [[ ${1} != ${MYPROMPT=p10k} ]] && { ___turbo=1; .zinit-ice \
+    load"[[ \${MYPROMPT} = ${1} ]]" unload"[[ \${MYPROMPT} != ${1} ]]" }
+    .zinit-ice atload'! [[ -f "${thmf}/${MYPROMPT}-post.zsh" ]] && source "${thmf}/${MYPROMPT}-post.zsh"' \
+    nocd id-as"${1}-theme";
+    ICE+=("${(kv)ZINIT_ICES[@]}"); ZINIT_ICES=();
+}
+
+##################
+# Initial Prompt #
+#    Annexes     #
+# Config source  #
+##################
+
+zt light-mode for \
+    pick'async.zsh' \
+        mafredri/zsh-async \
+        romkatv/powerlevel10k
+
+zt for if'zct dolphin' \
+        zdharma/null \
+    if'zct p10k' \
+        zdharma/null
+
+zt light-mode for \
+        zinit-zsh/z-a-patch-dl \
+        zinit-zsh/z-a-submods \
+        NICHOLAS85/z-a-linkman \
+        NICHOLAS85/z-a-linkbin \
+        atinit'Z_A_USECOMP=1' \
+        NICHOLAS85/z-a-eval
+
+zt light-mode blockf for \
+        _local/config-files
+
+###########
+# Plugins #
+###########
+
+######################
+# Trigger-load block #
+######################
+
+zt light-mode for \
+    trigger-load'!x' svn \
+        OMZ::plugins/extract \
+    trigger-load'!man' \
+        ael-code/zsh-colored-man-pages \
+    trigger-load'!ga;!grh;!glo;!gd;!gcf;!gclean;!gss;!gcp' \
+        wfxr/forgit \
+    trigger-load'!zshz' blockf \
+        agkozak/zsh-z \
+    trigger-load'!updatelocal' blockf compile'f*/*~*.zwc' \
+        smikeblog/updatelocal \
+    trigger-load'!zhooks' \
+        agkozak/zhooks \
+    trigger-load'!gcomp' blockf \
+    atclone'command rm -rf lib/*;git ls-files -z lib/ |xargs -0 git update-index --skip-worktree' \
+    submods'RobSis/zsh-completion-generator -> lib/zsh-completion-generator;
+    nevesnunes/sh-manpage-completions -> lib/sh-manpage-completions' \
+    atload' gcomp(){gencomp "${@}" && zinit creinstall -q ${ZINIT[SNIPPETS_DIR]}/config 1>/dev/null}' \
+         Aloxaf/gencomp
+
+##################
+# Wait'0a' block #
+##################
+
+zt 0a light-mode for \
+        OMZP::systemd/systemd.plugin.zsh \
+        OMZP::sudo/sudo.plugin.zsh \
+    atload'zstyle ":completion:*" special-dirs false' \
+        OMZL::completion.zsh \
+    as'completion' atpull'zinit cclear' blockf \
+        zsh-users/zsh-completions \
+    as'completion' nocompile mv'*.zsh -> _git' patch"${pchf}/%PLUGIN%.patch" reset \
+        felipec/git-completion \
+    atload'_zsh_autosuggest_start' \
+        zsh-users/zsh-autosuggestions
+
+##################
+# Wait'0b' block #
+##################
+#    pack'no-dir-color-swap' atload"zstyle ':completion:*' list-colors \${(s.:.)LS_COLORS}" \
+#    blockf nocompletions compile'functions/*~*.zwc' \
+#        marlonrichert/zsh-edit \
+
+zt 0b light-mode patch"${pchf}/%PLUGIN%.patch" reset nocompile'!' for \
+    atload'ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(__fz_zsh_completion)' \
+        changyuheng/fz \
+    atload'ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(autopair-insert)' \
+        hlissner/zsh-autopair \
+    eval'dircolors -b LS_COLORS' atload"zstyle ':completion:*' list-colors \${(s.:.)LS_COLORS}" \
+        trapd00r/LS_COLORS \
+    atload'add-zsh-hook chpwd chwpd_dir-history-var;
+    add-zsh-hook zshaddhistory append_dir-history-var; chwpd_dir-history-var' \
+        kadaan/per-directory-history \
+    compile'h*' \
+        zdharma/history-search-multi-word \
+    trackbinds bindmap'\e[1\;6D -> ^[[1\;5B; \e[1\;6C -> ^[[1\;5A' \
+        michaelxmcbride/zsh-dircycle \
+    atinit'zicompinit_fast; zicdreplay' atload'FAST_HIGHLIGHT[chroma-man]=' \
+    atclone'(){local f;cd -q →*;for f (*~*.zwc){zcompile -Uz -- ${f}};}' \
+    compile'.*fast*~*.zwc' nocompletions atpull'%atclone' \
+        zdharma/fast-syntax-highlighting
+zt 0b light-mode for \
+    blockf compile'lib/*f*~*.zwc' \
+        Aloxaf/fzf-tab \
+    autoload'#manydots-magic' \
+        knu/zsh-manydots-magic \
+        RobSis/zsh-reentry-hook \
+    pick'autoenv.zsh' nocompletions \
+        Tarrasch/zsh-autoenv \
+    atload'bindkey "${terminfo[kcuu1]}" history-substring-search-up;
+    bindkey "${terminfo[kcud1]}" history-substring-search-down' \
+        zsh-users/zsh-history-substring-search
+
+##################
+# Wait'0c' block #
+##################
+
+zt 0c light-mode binary from'gh-r' lman lbin for \
+    atclone'./just --completions zsh > _just' atpull'%atclone' \
+        casey/just \
+    bpick'*linux64*' \
+        zyedidia/micro \
+    atclone'mv -f **/*.zsh _bat' atpull'%atclone' \
+        @sharkdp/bat \
+        @sharkdp/hyperfine \
+        @sharkdp/fd
+
+zt 0c light-mode binary for \
+    lbin \
+        laggardkernel/git-ignore \
+    lbin from'gh-r' \
+        Peltoche/lsd \
+    lbin from'gh-r' \
+        denisidoro/navi
+
+zt 0c light-mode null for \
+    lbin'*d.sh;*n.sh' \
+        bkw777/notify-send.sh \
+    lbin from'gh-r' bpick'*x_x86*' \
+        charmbracelet/glow \
+    lbin'lf* -> lf' from'gh-r' bpick'*linux-amd64*' \
+        gokcehan/lf \
+    lbin'nnn* -> nnn' from'gh-r' bpick'*nerd*' \
+        jarun/nnn \
+    lbin'*/delta' from'gh-r' patch"${pchf}/%PLUGIN%.patch" \
+        dandavison/delta \
+    lbin from'gh-r' dl'https://raw.githubusercontent.com/junegunn/fzf/master/man/man1/fzf.1' lman \
+        junegunn/fzf \
+    lbin from'gh-r' \
+        ericchiang/pup \
+    id-as'Cleanup' nocd atinit'unset -f zt; _zsh_autosuggest_bind_widgets' \
+        zdharma/null
+
+
+################
+#  smike block #
+################
+
+
+###########
+# Plugins #
+###########
+
+zinit ice lucid ver'master' wait'0a' as'program' has'perl' pick'exiftool'
+zinit light exiftool/exiftool
+
+zinit light mollifier/anyframe
+zinit light jimeh/zsh-peco-history
+zinit light supercrabtree/k
+
+# NEOVoM
+zinit ice from"gh-r" as"program" bpick"*appimage*" ver"nightly" mv"nvim* -> nvim" lbin"nvim"
+#zinit ice from"gh-r" as"program" bpick"*appimage*" mv"nvim* -> nvim" lbin"nvim"
+zinit light neovim/neovim
+
+# LAZYGIT
+#zinit ice lucid wait"0" as"program" from"gh-r" mv"lazygit* -> lazygit" atload"alias lg='lazygit'"
+zinit ice lucid wait"0" as"program" from"gh-r" mv"lazygit* -> lazygit" lbin"lazygit" atload"alias lg='lazygit'"
+zinit light 'jesseduffield/lazygit'
+
+# EXA
+zinit ice wait"2" lucid from"gh-r" as"program" mv"bin/exa* -> exa" lbin"exa"
+zinit light ogham/exa
+zinit ice wait blockf atpull'zinit creinstall -q .'
+
+# BAT-EXTRAS
+zinit ice wait"1" as"program" pick"src/batgrep.sh" lucid
+zinit ice wait"1" as"program" pick"src/batdiff.sh" lucid
+zinit light eth-p/bat-extras
+
+# RIPGREP
+zinit ice from"gh-r" as"program" mv"ripgrep* -> ripgrep" lbin"ripgrep/rg"
+zinit light BurntSushi/ripgrep
+
+# TREE-SITTER
+zinit ice as"program" from"gh-r" mv"tree* -> tree-sitter" lbin"tree-sitter"
+zinit light tree-sitter/tree-sitter
+# XURLS
+zinit ice as"program" from"gh-r" mv"xurls* -> xurls" lbin"xurls"
+zinit light mvdan/xurls
+# PRETTYPING
+zinit ice lucid wait'' as"program" lbin"prettyping" atload'alias ping=prettyping'
+zinit load "denilsonsa/prettyping"
+
+zinit ice svn wait lucid
+zinit snippet PZT::modules/spectrum
+
+# cheat.sh
+zinit wait"2a" lucid \
+  id-as"cht.sh" \
+  as"program" \
+  for https://cht.sh/:cht.sh
+  # has'rlwrap' \
+zinit wait"2b" lucid \
+  id-as"cht-completion" \
+  has'rlwrap' \
+  mv"cht* -> _cht" \
+  as"completion" \
+  for https://cheat.sh/:zsh
+# cheat
+zinit wait"2a" lucid \
+  id-as"cheat" \
+  from"gh-r" \
+  mv"cheat* -> cheat" \
+  pick"cheat" \
+  as"program" \
+  for @cheat/cheat
+zinit wait"2b" lucid \
+  id-as"cheat-completion" \
+  mv"cheat* -> _cheat" \
+  as"completion" \
+  for https://github.com/cheat/cheat/blob/master/scripts/cheat.zsh
+
+#====================
+#====================
+#====================
+
+# bandwhich network bandwidth monitor
+zinit ice lucid wait"0" as"program" id-as"bandwhich" from"gh-r"
+zinit light imsnif/bandwhich
+
+zinit wait'1' lucid \
+  from"gh-r" as"program" bpick'*lnx*' \
+  light-mode for @dalance/procs
+
+zinit wait'1' lucid \
+  from"gh-r" as"program" pick"mmv*/mmv" \
+  light-mode for @itchyny/mmv
+
+# snippet
+[[ $- == *i* ]] && stty -ixon
+zinit wait'1' lucid blockf nocompletions \
+  from"gh-r" as"program" pick"pet" bpick'*linux_amd64.tar.gz' \
+  atclone'chown -R $(id -nu):$(id -ng) .; zinit creinstall -q knqyf263/pet' \
+  atpull'%atclone' \
+  atload"source $HOME/.dotfiles/zsh-plug-funcs/pet_atload.zsh" \
+  for @knqyf263/pet
+
+zinit ice from"gh-r" as"program" pick"*/peco"
+zinit light "peco/peco"
+
+# etc #
+zinit wait'1' lucid \
+  as"program" pick"emojify" \
+  light-mode for @mrowa44/emojify
+
+#====================
+#====================
+#====================
+
+# load user custom functions
+if [[ -f ~/.zshrc.custom ]]; then
+  source ~/.zshrc.custom
+fi
+
+# GITSTATUS_LOG_LEVEL=DEBUG
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+
+# vim: ft=zsh
