@@ -7,9 +7,6 @@
   " " shell for syntax highlighting purposes.
   let g:is_posix = 1
 
-" open FZF in current file's directory
-    nnoremap <silent> <Leader>1 :Files <C-R>=expand('%:h')<CR><CR>
-
   " fold file based on syntax
     nnoremap <silent> <leader>zs :setlocal foldmethod=syntax<CR>
     nnoremap <silent> <leader>zm :setlocal foldmethod=marker<CR>
@@ -102,7 +99,7 @@ autocmd FileType scss,sass,css setlocal expandtab shiftwidth=2 softtabstop=2 tex
 "
 " "" Markdown {{{2
  autocmd FileType markdown setlocal expandtab shiftwidth=2 colorcolumn=90 textwidth=90 fo+=t fo-=l
-" autocmd FileType markdown setlocal expandtab shiftwidth=2 softtabstop=2
+ autocmd FileType markdown setlocal expandtab shiftwidth=2 softtabstop=2
 " colorcolumn=90 conceallevel=0
 " let g:mkdp_auto_close                  = 0
 " let g:vim_markdown_auto_insert_bullets = 0

@@ -272,9 +272,9 @@ super + alt + space
 super + Return
 	st
 #	$TERMINAL
-# description: terminal Alacritty
+# description: terminal xfce
 super + alt + Return
-	alacritty
+	xfce4-terminal --hide-borders
 # description: terminal TMUX xfce4-terminal
 super + shift + Return
 	xfce4-terminal -e ~/.dotfiles/home.local/bin/tat

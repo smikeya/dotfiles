@@ -416,5 +416,6 @@ export SKIM_DEFAULT_OPTIONS="
 
 alias vv.='vv .'
 alias vv..='vv . .'
+alias hugostart="hugo server -DEF --ignoreCache"
 
 # vim: ft=zsh
