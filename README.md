@@ -8,13 +8,13 @@ My dotfile configuration
 
       sudo apt install zsh git
 
-### 1.2 on Manjaro and Arco
+### 1.2 on Arch
 
       pacman -S zsh git
 
 ## 2. make zsh default shell
 
-### 2.1 on Debian and Manjaro+Arco
+### 2.1 on Debian and Arch
 
       chsh -s $(which zsh)
 
@@ -33,7 +33,7 @@ My dotfile configuration
       chmod u+x nvim.appimage
       ./nvim.appimage
 
-### 3.2 on Manjaro + Arco
+### 3.2 on Arch
 
        yay -S neovim.git
 
@@ -61,7 +61,7 @@ My dotfile configuration
       For terminal , vim and tmux:
       cp ~/.dotfiles/fonts/ ~/.local/share/
 
-### 6.1 Nerd FiraCode
+#### 6.1 Nerd FiraCode
 ```
      wget $((curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | \
         grep "browser_download_url" | \
@@ -72,7 +72,7 @@ My dotfile configuration
      unzip FiraCode.zip -d ~/.local/share/fonts/FiraCodeNerd/
 ```
 
-### 6.1 Nerd UbuntuMono
+#### 6.1 Nerd UbuntuMono
 ```
      wget $((curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | \
         grep "browser_download_url" | \
@@ -80,7 +80,7 @@ My dotfile configuration
         cut -d\: -f2,3 | jq -r )
 
      mkdir -p ~/.local/share/fonts/UbuntuMonoNerd/
-     unzip FiraCode.zip -d ~/.local/share/fonts/UbuntuMonoNerd/
+     unzip UbuntuMono.zip -d ~/.local/share/fonts/UbuntuMonoNerd/
 ```
 
      and finally index new fonts:
@@ -92,7 +92,7 @@ My dotfile configuration
 
 ## 7. make links to zsh and vim lite configs
 
-### 7.1 zsh
+#### 7.1 zsh
 ```
       ln -s ~/.dotfiles/zsh.links/profile ~/.profile
       ln -s ~/.dotfiles/zsh.links/zshrc.custom ~/.zshrc.custom
@@ -109,13 +109,15 @@ My dotfile configuration
 ### 7.2 vifm
 
 ```
-      ln -s ~/.dotfiles/vifm/ ~/.config/ 
+      cd ~/.dotfiles/config-sm/vifm
+      ./install.sh 
 ```
 
-### 7.3 nvim (2021 - if zsh=b) then appimage is used and managed by zinit )
+### 7.3 nv(nvim) (2021 - if zsh=b) then appimage is used and managed by zinit )
 ```
-      nvim -u ~/.dotfiles/vimrc +PlugInstall
-      ln -s ~/.dotfiles/vim/vil ~/.vil
+      git clone git@gitlab.com:sm-neovim/nvim-nightly.git ~/.config/nvim-nightly
+      ln -s ~/.config/nvim-nightly/nv ~/bin/nv
+      nv +Pluginstall
 ```
 ## 7. logout && login for chsh to take effect
 
@@ -139,7 +141,7 @@ Note: I install WM for development environment alongside with DE (cinnamon or xf
 
     depends: XCB, xcb-util-keysyms, xcb-util-wm: http://xcb.freedesktop.org/
 ```
-  cd ~/Downloads/build/
+  cd ~/Repos/
   git clone https://github.com/ink/xorg-choose-window.git
   cd xorg-choose-window
   sudo make uninstall
@@ -173,14 +175,16 @@ Note: I install WM for development environment alongside with DE (cinnamon or xf
 
 #### make links to .dotfiles
 ```
-    ln -s ~/.dotfiles/config/bspwm ~/.config/
-    ln -s ~/.dotfiles/config/sxhkd ~/.config/
+    cd ~/.dotfiles/config-sm/bspwm
+    ./install.sh
+    cd ~/.dotfiles/config-sm/sxhkd
+    ./install.sh
 ```
 #### copy desktop file to nake it to appear in login manager
 ```
     sudo cp ~/.dotfiles/doc/desktops/bspwm.desktop /usr/share/xsessions/
 ```
-## install dependencies polybar and btops
+## install dependencies polybar
 
 ### polybar
 

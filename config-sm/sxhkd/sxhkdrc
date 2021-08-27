@@ -320,10 +320,11 @@ super + @space
     -hide-scrollbar true \
     -bw 2 \
     -lines 15 \
-    -padding 24 \
+    -padding 50 \
     -width 60 \
     -location 0 \
     -columns 1 \
+    -show-icons
     -font "Noto Sans 9" \
     -color-enabled true
 # 3}}}

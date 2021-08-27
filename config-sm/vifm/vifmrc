@@ -512,9 +512,9 @@ nnoremap yd :!echo %d | xclip %i<cr>
 nnoremap yf :!echo %c:p | xclip %i<cr>
 
 " Mappings for faster renaming
-nnoremap I cw<c-a>
-nnoremap cc cw<c-u>
-nnoremap A cw
+nnoremap rI cw<c-a>
+nnoremap rC cw<c-u>
+nnoremap rA cw
 
 " Open console in current directory
 nnoremap ,t :!st 2>/dev/null &<CR>
@@ -575,7 +575,9 @@ nnoremap <c-f> :FZFfind<cr>
 map fl :FZFlocate<cr>
 map fg :FZFfind<cr>
 
-map x :!sxiv -ft * 2>/dev/null &<CR>
+" open all images in current directory in sxiv thumbnail mode
+nnoremap xs :!sxiv -t %d & <cr>
+map xx :!sxiv -ft * 2>/dev/null &<CR>
 
 " spacebar to select/unselect files
 nmap <space> t
