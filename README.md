@@ -6,7 +6,7 @@ My dotfile configuration
 
 ### 1.1 on Debian
 
-      sudo apt install zsh git
+      sudo apt install zsh git subversion
 
 ### 1.2 on Arch
 
