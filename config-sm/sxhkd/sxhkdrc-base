@@ -64,7 +64,7 @@ super + Return
 #	$TERMINAL
 # description: terminal emulator
 super + alt + Return
-	alacritty
+ 	xfce4-terminal
 # description: xfce4-terminal emulator
 super + shift + Return
 	xfce4-terminal -e ~/.dotfiles/home.local/bin/tat
@@ -73,7 +73,7 @@ super + shift + Return
 #     FUNCTION KEYS
 #################################################################
 
-#xfce4-terminal dropdown
+# description: xfce4-terminal dropdown
 F12
  	xfce4-terminal --drop-down
 
