@@ -92,6 +92,7 @@ FZF_DEFAULT_OPTS="
 --extended
 --reverse
 --cycle
+--bind '?:toggle-preview'
 --bind ctrl-s:toggle-sort
 --bind 'alt-e:execute($EDITOR {} >/dev/tty </dev/tty)'
 --preview '(bat --color=always {} || ls --color=always \$(x={}; echo \"\${x/#\~/\$HOME}\")) 2>/dev/null | head -200'
