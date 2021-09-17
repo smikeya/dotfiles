@@ -172,10 +172,10 @@ autocmd BufRead,BufNewFile *.{cal,md,rmd,Rmd} set filetype=markdown
 autocmd BufRead,BufNewFile .{zshrc,zshfunc}.custom set filetype=sh
 
 " source dracula theme
-source ~/.dotfiles/vim/dot.vim/colors/dracula.vim
+source ~/.dotfiles/vim/home.vim/colors/dracula.vim
 
 " source calendar & diary script
-source ~/.dotfiles/vim/dot.vim/calendar.vim
+source ~/.dotfiles/vim/home.vim/calendar.vim
 
 source ~/.fzf/plugin/fzf.vim 
 
