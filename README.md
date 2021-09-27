@@ -70,7 +70,7 @@ My dotfile configuration
 
      mkdir -p ~/.local/share/fonts/FiraCodeNerd/
      unzip FiraCode.zip -d ~/.local/share/fonts/FiraCodeNerd/
-
+```
      
 #### 6.2 Nerd JetBrainsMono
 ```
