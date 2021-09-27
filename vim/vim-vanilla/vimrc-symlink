@@ -5,7 +5,7 @@ set nomodeline      " disable mode lines (security measure)
 set history=1000    " boost commands and search patterns history
 set undolevels=1000 " boost undo levels
 set timeoutlen=500      " time in milliseconds for a key sequence to complete
-set rtp+=~/.dotfiles/vim/dot.vim/
+set rtp+=~/.dotfiles/vim/home.vim/
 " No swap files or backups
 set viminfo=
 set nobackup

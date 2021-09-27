@@ -65,7 +65,8 @@ super + shift  + v
 
 # description: dm-confedit: Edit Configs
 super + v
-	exec dm-hub
+	dm-hub
+#	exec dm-hub
 
 # STATE/FLAGS ============================ {{{
 

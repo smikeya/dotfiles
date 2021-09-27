@@ -70,9 +70,19 @@ My dotfile configuration
 
      mkdir -p ~/.local/share/fonts/FiraCodeNerd/
      unzip FiraCode.zip -d ~/.local/share/fonts/FiraCodeNerd/
+
+#### 6.2 Nerd JetBrainsMono
+```
+     wget $((curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | \
+        grep "browser_download_url" | \
+        grep "JetBrainsMono.zip") | \
+        cut -d\: -f2,3 | jq -r )
+
+     mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd/
+     unzip FiraCode.zip -d ~/.local/share/fonts/JetBrainsMonoNerd/
 ```
 
-#### 6.1 Nerd UbuntuMono
+#### 6.3 Nerd UbuntuMono
 ```
      wget $((curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | \
         grep "browser_download_url" | \

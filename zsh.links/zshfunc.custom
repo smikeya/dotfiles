@@ -146,13 +146,6 @@ if _color; then
   export GREP_COLOR='1;32'
 fi
 
-# GNU and BSD ls colorization.
-if _color; then
-#  export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:bd=33;01:cd=33;01:or=01;05;37;41:mi=01;37;41:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.bz=01;31:*.tz=01;31:*.rpm=01;31:*.cpio=01;31:*.jpg=01;35:*.gif=01;35:*.bmp=01;35:*.xbm=01;35:*.xpm=01;35:*.png=01;35:*.tif=01;35:'
-#  export LSCOLORS='ExGxFxdxCxDxDxcxcxxCxc'
-#  export CLICOLOR=1
-fi
-
 # PATH MODIFICATIONS {{{1
 
 # Functions which modify the path given a directory, but only if the directory
@@ -285,7 +278,7 @@ alias ducky='web_search duckduckgo \!'
 
 ## ---------- Utilityty Funcs  ------------------ {{{3
 ## form https://github.com/jotyGill/quickz-sh/blob/master/.zshrc
-speedtest() {
+sys.speedtest() {
     curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -
 }
 
@@ -328,7 +321,7 @@ _fzf_compgen_dir() {
 # with above functions fd will power fzf, CTRL-T, ALT-C, and **
 
 # find-in-file - usage: fif <SEARCH_TERM>
-fif() {
+fzf.find-in-files() {
   if [ ! "$#" -gt 0 ]; then
     echo "Need a string to search for! usage: fif <SEARCH_TERM>";
     return 1;
@@ -349,7 +342,7 @@ function fzf.man(){
 #alias man="myman"
 
 ## ffe find with preview and edit in vim     {{{
-fzf_find_edit() {
+fzf.find_edit() {
     local file=$(
 ##      fzf --no-multi --preview 'bat --color=always --line-range :500 {}'
         fzf --preview='pistol {}'
@@ -359,11 +352,11 @@ fzf_find_edit() {
     fi
 }
 # }}}
-alias ffe='fzf_find_edit'
+alias ffe='fzf.find_edit'
 bindkey -s '^X^e' 'ffe\n'
 
 # fge grep edit {{{
-fzf_grep_edit(){
+fzf.grep_edit(){
     if [[ $# == 0 ]]; then
         echo 'Error: search term was not provided.'
         return
@@ -379,10 +372,10 @@ fzf_grep_edit(){
     fi
 }
 # }}}
-alias fge='fzf_grep_edit'
+alias fge='fzf.grep_edit'
 
 # git log {{{
-fzf_git_log() {
+fzf.git_log() {
     local commits=$(
       git l --color=always "$@" |
         fzf --ansi --no-sort --height 100% \
@@ -395,10 +388,10 @@ fzf_git_log() {
     fi
 }
 # }}}
-alias gll='fzf_git_log'
+alias gll='fzf.git_log'
 
 # git log pickaxe {{{
-fzf_git_log_pickaxe() {
+fzf.git_log_pickaxe() {
      if [[ $# == 0 ]]; then
          echo 'Error: search term was not provided.'
          return
@@ -414,10 +407,10 @@ fzf_git_log_pickaxe() {
      fi
  }
 # }}}
-alias glS='fzf_git_log_pickaxe'
+alias glS='fzf.git_log_pickaxe'
 
 # alias grl git ref log {{{
-fzf_git_reflog() {
+fzf.git_reflog() {
     local hash=$(
       git reflog --color=always "$@" |
         fzf --no-multi --ansi --no-sort --height 100% \
@@ -426,18 +419,18 @@ fzf_git_reflog() {
     echo $hash
 }
 # }}}
-alias grl='fzf_git_reflog'
+alias grl='fzf.git_reflog'
 #
 ## --- }}}4
 #
 # Choose binary in $PATH with fzf
-insert_binary_from_path() {
+fzf.insert_binary_from_path() {
     cmd=$(print -rl -- ${(ko)commands} | fzf --height 40% --layout=reverse)
     LBUFFER="${LBUFFER}${cmd}"
     zle redisplay
 }
-zle -N insert_binary_from_path
-bindkey '^[d' insert_binary_from_path  # Alt+d
+zle -N fzf.insert_binary_from_path
+bindkey '^[d' fzf.insert_binary_from_path  # Alt+d
 ## ================== not Aliased =======
 ## -- }}}1
 
