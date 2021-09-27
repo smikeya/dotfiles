@@ -71,6 +71,7 @@ My dotfile configuration
      mkdir -p ~/.local/share/fonts/FiraCodeNerd/
      unzip FiraCode.zip -d ~/.local/share/fonts/FiraCodeNerd/
 
+     
 #### 6.2 Nerd JetBrainsMono
 ```
      wget $((curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | \
